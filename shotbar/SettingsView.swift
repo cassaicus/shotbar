@@ -153,7 +153,7 @@ struct SettingsView: View {
                                             .monospacedDigit()
                                     }
 
-                                    Text("推薦値: 0.05 (0.00は完全一致)")
+                                    Text("推薦値: 0.25 (0.00は完全一致で停止)")
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
                                 }
