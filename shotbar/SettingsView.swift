@@ -41,14 +41,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-
-                    GridRow {
-                        Label("ファイル名接頭辞:", systemImage: "pencil")
-                            .help("保存されるファイルの先頭に付く文字列")
-
-                        TextField("例: capture", text: $filenamePrefix)
-                    }
-
+                    
                     GridRow {
                         Color.clear
                             .gridColumnAlignment(.trailing)
@@ -57,6 +50,13 @@ struct SettingsView: View {
                         Toggle("保存時に自動でフォルダを作成する", isOn: $autoCreateFolder)
                             .toggleStyle(.checkbox)
                             .help("撮影開始時に日時名のフォルダを作成し、そこに保存します")
+                    }
+                    
+                    GridRow {
+                        Label("ファイル名接頭辞:", systemImage: "pencil")
+                            .help("保存されるファイルの先頭に付く文字列")
+
+                        TextField("例: capture", text: $filenamePrefix)
                     }
                 }
                 .padding(8)
