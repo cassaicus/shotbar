@@ -126,13 +126,19 @@ struct SettingsView: View {
                     }
 
                     GridRow {
-                        Color.clear
-                            .gridColumnAlignment(.leading)
-                            .frame(width: 0, height: 0)
-
-                        Toggle("画像の重複を検知したら撮影を停止", isOn: $detectDuplicate)
-                            .toggleStyle(.checkbox)
-                            .help("直前に撮影した画像と完全に一致した場合、撮影を終了します")
+//                        Color.clear
+//                            .gridColumnAlignment(.leading)
+//                            .frame(width: 0, height: 0)
+                        
+                        Label("停止条件:", systemImage: "stop.circle.fill")
+                            .help("撮影ごとの待機時間")
+                        
+                        
+                        HStack {
+                            Toggle("画像の重複を検知したら撮影を停止", isOn: $detectDuplicate)
+                                .toggleStyle(.checkbox)
+                                .help("直前に撮影した画像と完全に一致した場合、撮影を終了します")
+                        }
                     }
                 }
                 .padding(8)
