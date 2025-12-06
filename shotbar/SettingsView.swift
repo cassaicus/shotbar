@@ -10,7 +10,7 @@ struct SettingsView: View {
     @AppStorage("intervalDelay") private var intervalDelay: Double = 1.0
     @AppStorage("detectDuplicate") private var detectDuplicate: Bool = false
     @AppStorage("duplicateThreshold") private var duplicateThreshold: Double = 0.05
-    @AppStorage("playCompletionSound") private var playCompletionSound: Bool = false
+    @AppStorage("completionSound") private var completionSound: String = "None"
     @AppStorage("countDownSound") private var countDownSound: String = "Beep"
 
     private let soundOptions = ["Beep", "Tink", "Pop", "Ping", "Morse", "None"]
@@ -191,8 +191,16 @@ struct SettingsView: View {
             // 通知セクション
             GroupBox(label: Label("通知", systemImage: "bell.badge")) {
                 HStack {
-                    Toggle("完了時に音を鳴らす", isOn: $playCompletionSound)
-                        .toggleStyle(.checkbox)
+                    Label("完了時の音:", systemImage: "speaker.wave.2")
+
+                    Picker("", selection: $completionSound) {
+                        ForEach(soundOptions, id: \.self) { sound in
+                            Text(sound)
+                        }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+
                     Spacer()
                 }
                 .padding(8)

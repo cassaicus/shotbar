@@ -61,8 +61,8 @@ class AutoCaptureEngine: ObservableObject {
         return val.isEmpty ? "capture" : val
     }
 
-    private var playCompletionSound: Bool {
-        UserDefaults.standard.bool(forKey: "playCompletionSound")
+    private var completionSound: String {
+        UserDefaults.standard.string(forKey: "completionSound") ?? "None"
     }
 
     private var autoCreateFolder: Bool {
@@ -81,14 +81,21 @@ class AutoCaptureEngine: ObservableObject {
         UserDefaults.standard.string(forKey: "countDownSound") ?? "Beep"
     }
 
-    private func playCountdownSound() {
-        let soundName = self.countDownSound
+    private func playSound(named soundName: String) {
         if soundName == "None" { return }
         if soundName == "Beep" {
             NSSound.beep()
         } else {
             NSSound(named: soundName)?.play()
         }
+    }
+
+    private func playCountdownSound() {
+        self.playSound(named: self.countDownSound)
+    }
+
+    private func playCompletionSoundAction() {
+        self.playSound(named: self.completionSound)
     }
 
     func start() {
@@ -109,7 +116,7 @@ class AutoCaptureEngine: ObservableObject {
         let _intervalDelay = self.intervalDelay
         let _maxCount = self.maxCount
         let _arrowKey = self.arrowKey
-        let _playCompletionSound = self.playCompletionSound
+        let _completionSound = self.completionSound
 
         if self.autoCreateFolder {
             let formatter = DateFormatter()
@@ -163,10 +170,10 @@ class AutoCaptureEngine: ObservableObject {
                 // カウント処理
                 self.currentShotCount += 1
                 if self.currentShotCount >= _maxCount {
-                    if _playCompletionSound {
-                        NSSound.beep()
+                    await MainActor.run {
+                        self.playSound(named: _completionSound)
+                        self.stop()
                     }
-                    await MainActor.run { self.stop() }
                     break
                 }
 
@@ -243,10 +250,10 @@ class AutoCaptureEngine: ObservableObject {
 
                 if isDuplicate {
                     print("重複画像を検知しました。停止します。")
-                    if self.playCompletionSound {
-                        NSSound.beep()
+                    await MainActor.run {
+                        self.playCompletionSoundAction()
+                        self.stop()
                     }
-                    self.stop()
                     return
                 }
             }
