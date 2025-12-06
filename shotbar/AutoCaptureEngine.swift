@@ -28,6 +28,7 @@ class AutoCaptureEngine: ObservableObject {
 
     private var currentShotCount = 0
     private var loopTask: Task<Void, Never>? // Timerの代わりにTaskを使用
+    private var currentSessionFolderPath: URL?
 
     // Settings accessors
     private var arrowKey: UInt16 {
@@ -63,6 +64,10 @@ class AutoCaptureEngine: ObservableObject {
         UserDefaults.standard.bool(forKey: "playCompletionSound")
     }
 
+    private var autoCreateFolder: Bool {
+        UserDefaults.standard.bool(forKey: "autoCreateFolder")
+    }
+
     func start() {
         if !checkPermission() {
             print("アクセシビリティ権限が必要です")
@@ -71,6 +76,7 @@ class AutoCaptureEngine: ObservableObject {
 
         currentShotCount = 0
         isRunning = true
+        currentSessionFolderPath = nil
 
         // Capture settings at start of run
         let _initialDelay = self.initialDelay
@@ -78,6 +84,29 @@ class AutoCaptureEngine: ObservableObject {
         let _maxCount = self.maxCount
         let _arrowKey = self.arrowKey
         let _playCompletionSound = self.playCompletionSound
+
+        if self.autoCreateFolder {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyyMMdd_HHmmss"
+            let timestamp = formatter.string(from: Date())
+
+            let savePath = self.saveFolderPath
+            let baseParamsURL: URL
+            if !savePath.isEmpty {
+                baseParamsURL = URL(fileURLWithPath: savePath)
+            } else {
+                baseParamsURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+            }
+
+            let newFolderURL = baseParamsURL.appendingPathComponent(timestamp)
+            do {
+                try FileManager.default.createDirectory(at: newFolderURL, withIntermediateDirectories: true)
+                currentSessionFolderPath = newFolderURL
+                print("Created session folder: \(newFolderURL.path)")
+            } catch {
+                print("Failed to create session folder: \(error)")
+            }
+        }
 
         loopTask?.cancel()
         loopTask = Task {
@@ -117,6 +146,7 @@ class AutoCaptureEngine: ObservableObject {
         isRunning = false
         loopTask?.cancel()
         loopTask = nil
+        currentSessionFolderPath = nil
     }
 
     func takeSingleShot() {
@@ -190,13 +220,17 @@ class AutoCaptureEngine: ObservableObject {
         let fileName = "\(prefix)_\(timestamp).png"
 
         // 保存フォルダの決定
-        let savePath = self.saveFolderPath
         let destinationURL: URL
-        if !savePath.isEmpty {
-            destinationURL = URL(fileURLWithPath: savePath)
+        if let sessionURL = currentSessionFolderPath {
+            destinationURL = sessionURL
         } else {
-            // デスクトップ
-            destinationURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+            let savePath = self.saveFolderPath
+            if !savePath.isEmpty {
+                destinationURL = URL(fileURLWithPath: savePath)
+            } else {
+                // デスクトップ
+                destinationURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+            }
         }
         
         let fileURL = destinationURL.appendingPathComponent(fileName)

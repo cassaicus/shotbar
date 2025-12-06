@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("saveFolderPath") private var saveFolderPath: String = ""
+    @AppStorage("autoCreateFolder") private var autoCreateFolder: Bool = false
     @AppStorage("filenamePrefix") private var filenamePrefix: String = "capture"
     @AppStorage("arrowKey") private var arrowKey: Int = 125 // Default Down (125)
     @AppStorage("maxCount") private var maxCount: Int = 50
@@ -46,6 +47,16 @@ struct SettingsView: View {
                             .help("保存されるファイルの先頭に付く文字列")
 
                         TextField("例: capture", text: $filenamePrefix)
+                    }
+
+                    GridRow {
+                        Color.clear
+                            .gridColumnAlignment(.trailing)
+                            .frame(width: 0, height: 0)
+
+                        Toggle("保存時に自動でフォルダを作成する", isOn: $autoCreateFolder)
+                            .toggleStyle(.checkbox)
+                            .help("撮影開始時に日時名のフォルダを作成し、そこに保存します")
                     }
                 }
                 .padding(8)
@@ -133,6 +144,7 @@ struct SettingsView: View {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
         panel.prompt = "選択"
         panel.message = "保存先フォルダを選択してください"
