@@ -61,6 +61,7 @@ struct SettingsView: View {
                 }
                 .padding(8)
             }
+            .frame(maxWidth: .infinity)
 
             // 動作設定セクション
             GroupBox(label: Label("動作設定", systemImage: "camera.badge.ellipsis")) {
@@ -124,6 +125,7 @@ struct SettingsView: View {
                 }
                 .padding(8)
             }
+            .frame(maxWidth: .infinity)
 
             // 通知セクション
             GroupBox(label: Label("通知", systemImage: "bell.badge")) {
@@ -134,6 +136,7 @@ struct SettingsView: View {
                 }
                 .padding(8)
             }
+            .frame(maxWidth: .infinity)
         }
         .padding()
         .frame(width: 480) // UI要素に合わせて少し広げる
