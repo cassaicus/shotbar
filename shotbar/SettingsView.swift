@@ -11,6 +11,9 @@ struct SettingsView: View {
     @AppStorage("detectDuplicate") private var detectDuplicate: Bool = false
     @AppStorage("duplicateThreshold") private var duplicateThreshold: Double = 0.05
     @AppStorage("playCompletionSound") private var playCompletionSound: Bool = false
+    @AppStorage("countDownSound") private var countDownSound: String = "Beep"
+
+    private let soundOptions = ["Beep", "Tink", "Pop", "Ping", "Morse", "None"]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -110,8 +113,25 @@ struct SettingsView: View {
                             TextField("秒", value: $initialDelay, format: .number)
                                 .frame(width: 80)
                                 .multilineTextAlignment(.trailing)
-                            Text("秒")
+                            Text("秒 (最大10秒)")
                         }
+                        .onChange(of: initialDelay) { oldValue, newValue in
+                            if newValue > 10.0 { initialDelay = 10.0 }
+                            if newValue < 0 { initialDelay = 0 }
+                        }
+                    }
+
+                    GridRow {
+                        Label("カウントダウン音:", systemImage: "speaker.wave.2")
+                            .help("開始待ち時間中に1秒ごとに鳴らす音")
+
+                        Picker("", selection: $countDownSound) {
+                            ForEach(soundOptions, id: \.self) { sound in
+                                Text(sound)
+                            }
+                        }
+                        .labelsHidden()
+                        .fixedSize()
                     }
 
                     GridRow {

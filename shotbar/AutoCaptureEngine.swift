@@ -77,6 +77,20 @@ class AutoCaptureEngine: ObservableObject {
         UserDefaults.standard.object(forKey: "duplicateThreshold") as? Double ?? 0.05
     }
 
+    private var countDownSound: String {
+        UserDefaults.standard.string(forKey: "countDownSound") ?? "Beep"
+    }
+
+    private func playCountdownSound() {
+        let soundName = self.countDownSound
+        if soundName == "None" { return }
+        if soundName == "Beep" {
+            NSSound.beep()
+        } else {
+            NSSound(named: soundName)?.play()
+        }
+    }
+
     func start() {
         if !checkPermission() {
             print("アクセシビリティ権限が必要です")
@@ -124,7 +138,17 @@ class AutoCaptureEngine: ObservableObject {
         loopTask = Task {
             // 1. 最初の待ち時間
             if _initialDelay > 0 {
-                try? await Task.sleep(nanoseconds: UInt64(_initialDelay * 1_000_000_000))
+                let delayInt = Int(_initialDelay)
+                // 秒数分、音を鳴らして待機
+                for _ in 0..<delayInt {
+                    if Task.isCancelled { return }
+                    await MainActor.run { self.playCountdownSound() }
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                }
+
+                // 0秒時点の音
+                if Task.isCancelled { return }
+                await MainActor.run { self.playCountdownSound() }
             }
             if Task.isCancelled { return }
 
