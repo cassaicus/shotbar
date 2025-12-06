@@ -29,7 +29,7 @@ class AutoCaptureEngine: ObservableObject {
     private var currentShotCount = 0
     private var loopTask: Task<Void, Never>? // Timerの代わりにTaskを使用
     private var currentSessionFolderPath: URL?
-    private var lastImageData: Data?
+    private let duplicateDetector: DuplicateDetecting = ExactMatchDuplicateDetector()
 
     // Settings accessors
     private var arrowKey: UInt16 {
@@ -82,7 +82,7 @@ class AutoCaptureEngine: ObservableObject {
         currentShotCount = 0
         isRunning = true
         currentSessionFolderPath = nil
-        lastImageData = nil
+        duplicateDetector.reset()
 
         // Capture settings at start of run
         let _initialDelay = self.initialDelay
@@ -209,13 +209,9 @@ class AutoCaptureEngine: ObservableObject {
             
             // 重複チェック
             if self.detectDuplicate {
-                let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
-                guard let currentData = bitmapRep.representation(using: .png, properties: [:]) else {
-                    saveImage(cgImage)
-                    return
-                }
+                let isDuplicate = await duplicateDetector.isDuplicate(cgImage)
 
-                if let lastData = lastImageData, lastData == currentData {
+                if isDuplicate {
                     print("重複画像を検知しました。停止します。")
                     if self.playCompletionSound {
                         NSSound.beep()
@@ -223,12 +219,10 @@ class AutoCaptureEngine: ObservableObject {
                     self.stop()
                     return
                 }
-
-                lastImageData = currentData
-                saveImageData(currentData)
-            } else {
-                saveImage(cgImage)
             }
+
+            // 重複でない場合（またはチェックしない場合）は保存
+            saveImage(cgImage)
             
         } catch {
             print("スクリーンショット撮影エラー: \(error)")
